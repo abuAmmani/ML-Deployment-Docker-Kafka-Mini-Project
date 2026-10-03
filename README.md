@@ -1,38 +1,26 @@
-# 🐳 Real-Time ML Inference Pipeline (Docker & Apache Kafka Mini-Project)
+# 🐳 Real-Time Iris Inference Pipeline (Docker, FastAPI & Apache Kafka)
 
-A high-performance **Machine Learning Operations (MLOps)** showcase demonstrating how to containerize, orchestrate, and deploy an event-driven, real-time machine learning inference pipeline.
+A production-grade **Machine Learning Operations (MLOps)** repository demonstrating how to deploy, containerize, and orchestrate a real-time, event-driven streaming pipeline for model predictions.
 
-Instead of traditional, synchronous REST APIs which suffer from high latency and scaling bottlenecks under peak traffic, this system utilizes a distributed event-streaming message broker. It allows the machine learning worker microservice to consume input features and publish model classifications asynchronously with ultra-low latency.
+Instead of deploying a standard, synchronous API that bottlenecks under high traffic, this architecture utilizes a distributed message broker to process inference requests asynchronously via a multithreaded consumer runtime worker.
 
 ## 🏗️ Architecture Design & Component Layout
-* **Event Ingestion Layer:** Uses **Apache Kafka** to manage real-time event messaging topics, safely buffering incoming inference payload streams.
-* **Service Containerization:** Orchestrated using **Docker** and multi-container environment configurations (`docker-compose.yml`) to ensure rapid deployment scaling and 100% environment reproducibility.
-* **Asynchronous ML Worker:** A dedicated Python microservice that listens to the input event stream, processes features, triggers serialized model weights, and emits streaming prediction outputs.
+* **Model Training Layer:** Trains a `LogisticRegression` classifier on the classic **Iris dataset** (predicting species classification), serializing the model weights securely via `joblib`.
+* **FastAPI Service Layer:** Wraps the trained model in a high-performance web interface providing a fallback REST endpoint (`/predict`) validated via `Pydantic` data structures.
+* **Asynchronous Kafka Workers:** A multithreaded background process using `threading.Thread` that actively streams payloads:
+  * Listens continuously to incoming transactions on the `ml-requests` topic channel.
+  * Processes features instantly through the loaded model matrix weights.
+  * Publishes completed integer classification results immediately out to the `ml-predictions` output topic.
 
-## 🛠️ Technical Stack
+## 🛠️ The MLOps Tech Stack
 * **Distributed Stream Broker:** Apache Kafka / Apache Zookeeper
+* **Web & Validation API:** FastAPI / Pydantic / Uvicorn
 * **Container Layer:** Docker & Docker Compose
-* **Orchestration Runtime:** Python 3
-* **Machine Learning Ingestion:** Serialized ML Model Component (Scikit-Learn / TensorFlow / PyTorch)
+* **Machine Learning Library:** Scikit-Learn (Logistic Regression Engine)
+* **Serialization Broker:** Joblib / NumPy
 
-## 📦 Core Pipeline Ingestion Workflow
-
-1. **Feature Generation:** Data producers simulate live user events or business transactions by publishing payloads directly into a Kafka input topic channel.
-2. **Event Buffering:** Kafka log partitions distribute the stream dynamically, ensuring high concurrent request handling without dropping data packets.
-3. **Container Ingestion:** The containerized machine learning consumer service reads raw streaming features, applies standard structural transformations, and invokes model inference.
-4. **Result Routing:** Classifications, scores, or anomalies are routed immediately to a distinct Kafka output topic for consuming client applications to act upon instantly.
-
-## 💻 Local Workspace Startup Setup
-
-1. **Clone this repository onto your machine:**
-   ```bash
-   git clone https://github.com
-   cd ML-Deployment-Docker-Kafka-Mini-Project
-   ```
-
-2. **Launch the distributed container stack:**
-   Ensure your local Docker engine dashboard is running, then run:
-   ```bash
-   docker-compose up --build
-   ```
-   *(This builds your custom inference worker image, pulls official Kafka/Zookeeper images from Docker Hub, initializes isolated virtual networks, and sets the entire real-time streaming pipeline live locally).*
+## 📦 Ingestion Workflow
+1. **Simulation:** A streaming simulation engine publishes structural vector data arrays (e.g., `[5.1, 3.5, 1.4, 0.2]`) directly to the broker.
+2. **Buffering & Queueing:** The Kafka server receives raw coordinates on the `ml-requests` track topic, protecting microservices from dropping requests during surge spikes.
+3. **Multithreaded Processing:** A daemon thread worker extracts payloads from the partition log, transforms data structures using NumPy arrays, runs model evaluations, and passes results forward.
+4. **Result Routing:** Classifications are pushed down to `ml-predictions` for downstream consumer ingestion channels to act upon.
